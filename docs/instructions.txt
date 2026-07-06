@@ -78,5 +78,29 @@ IMULI   R, I          AX -> IMUL X   -> AX          RA = RA * I     (2)  [ZN  ]
 IDIVI   R, I          AX -> IDIV X   -> AX          RA = RA / I     (2)  [ZN  ]
 IREMI   R, I          AX -> IDIV X   -> DX          RA = RA rem I   (2)  [ZN  ]
 CMPI    R, I                CMP R, I                RA - I          (2)  [ZNCV]
+BRE     R, R                JE  R, R                if (Z)          PC = RA
+BRA     R, R                JA  R, R                if (C & !Z)     PC = RA
+BRB     R, R                JB  R, R                if (!C)         PC = RA
+BRAE    R, R                JAE R, R                if (C)          PC = RA
+BRBE    R, R                JBE R, R                if (!C | Z)     PC = RA
+BRG     R, R                JGT R, R                if (!Z | N = V) PC = RA (2)
+BRL     R, R                JLT R, R                if (N != V)     PC = RA (2)
+BRGE    R, R                JGE R, R                if (N = V)      PC = RA (2)
+BRLE    R, R                JLE R, R                if (Z | N != V) PC = RA (2)
+JMP     R                   JMP R                   PC = RA
+BREM    R, M                JE  R, M                if (Z)           PC = M
+BRAM    R, M                JA  R, M                if (C & !Z)      PC = M
+BRBM    R, M                JB  R, M                if (!C)          PC = M
+BRAEM   R, M                JAE R, M                if (C)           PC = M
+BRBEM   R, M                JBE R, M                if (!C | Z)      PC = M
+BRGM    R, M                JGT R, M                if (!Z | N = V)  PC = M (2)
+BRLM    R, M                JLT R, M                if (N != V)      PC = M (2)
+BRGEM   R, M                JGE R, M                if (N = V)       PC = M (2)
+BRLEM   R, M                JLE R, M                if (Z | N != V)  PC = M (2)
+JMPM    M                   JMP M                   PC = M
+OUT     R, R                OUT R, R                pins[RA] = RB
+IN      R, R                IN  R, R                RB = pins[RB]
+OUTI    R, I                OUT R, I                pins[RA] = RB
+INI     R, I                IN  R, I                RB = pins[RA]
 
 This mapping of instructions is a work in progress.
