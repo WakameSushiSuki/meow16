@@ -98,6 +98,15 @@ BRLM    R, M                JLT R, M                if (N != V)      PC = M (2)
 BRGEM   R, M                JGE R, M                if (N = V)       PC = M (2)
 BRLEM   R, M                JLE R, M                if (Z | N != V)  PC = M (2)
 JMPM    M                   JMP M                   PC = M
+PUSH    R                   PUSH R                  *(SP--) = RA
+POP     R                   POP  R                  RA = *(++SP)
+CALL    M                   CALL M                  *(SP--) = PC
+RET                         RET                     PC = *(++SP)
+PUSHI   I                   PUSH I                  *(SP--) = I
+POPM    M                   POP  M                  *M = *(++SP)
+CALLR   R                   CALL [R]                *(SP--) = *RA
+RETTO   R                   ~                       ++SP; PC = R
+RETTOM  M                   ~                       ++SP; PC = M
 OUT     R, R                OUT R, R                pins[RA] = RB
 IN      R, R                IN  R, R                RB = pins[RB]
 OUTI    R, I                OUT R, I                pins[RA] = RB
