@@ -1,0 +1,7 @@
+add:
+- LOADR  R, R               =>  RA = *RB
+- STORER R, R               =>  RA = *RB
+- CPEA   R, R + R           =>  RA = RB + RC
+- CPEAI  R, R + I           =>  RA = RB + I
+- CPEAX  R, R + R * I12     =>  RA = RB + RC * I12
+- CPEAD  R, R + R * I8 + R  =>  RA = RB + RC * I8 + RD
