@@ -1,0 +1,57 @@
+This file defines a map between this ISA and x86-style instructions, used for
+reference. It also includes the side effects of the instructions.
+-------------------------------------------------------------------------------
+R refers to a register index.
+I refers to an immediate word.
+M refers to an effective memory address.
+
+*, in a mapping, means that this ISA can use an immediate here, but x86 must
+use r16, m16, or r/m16 in place.
+
+A right-pointing arrow '->' at the start of a mapped instruction means that if
+this was x86, we would need the defined fixed register for an input.
+A right-pointing arrow '->' at the end of a mapped instruction means that if
+this was x86, we would derive the result of intended instruction from the
+defined fixed register.
+
+'(2)' at the end of an effect means its operation follows 2's compliment. If
+it is not present, the operation can be treated as unsigned, or disregarding
+sign.
+'(Z)' at the end of an effect means its operation zero-extends the result.
+'(S)' at the end of an effect means its operation sign-extends the result,
+or otherwise uses the sign bit (eg Shift Arithmetic Right fills with sign).
+
+Square brackets denote which flags an effect sets, if any - unspecified flags
+are ignored, but places assigned to a flag which are 0 shall be cleared.
+Letters representing flags and their assigned places include:
+    - Z for zero flag,            place 1
+    - N for negative (sign) flag, place 2
+    - C for carry flag,           place 3
+    - V for overflow flag,        place 4
+-------------------------------------------------------------------------------
+Meow16 Instruction          x86 Instruction         Effects
+
+LOAD   R, R                 MOV R, R                RA = RB
+LOADI  R, I                 MOV R, I                RA = I
+LOADM  R, M                 MOV R, [M]              RA = *M
+STORE  M, R                 MOV [M], R              *M = RA
+STOREI M, I                 MOV [M], I              *M = RA
+AND    R, R                 AND R, R                RA = RA & RB         [ZN  ]
+OR     R, R                 OR  R, R                RA = RA | RB         [ZN  ]
+XOR    R, R                 XOR R, R                RA = RA ^ RB         [ZN  ]
+SHL    R, R                 SHL R, R                RA = RA << RB        [ZNC ]
+SHR    R, R                 SHR R, R                RA = RA >> RB        [ZNC ]
+SAR    R, R                 SAR R, R                RA = RA sar RB  (S)  [ZNC ]
+ROL    R, R                 ROL R, R                RA = RA rol RB       [ZNC ]
+ROR    R, R                 ROR R, R                RA = RA ror RB       [ZNC ]
+ADD    R, R                 ADD R, R                RA = RA + RB    (2)  [ZNCV]
+SUB    R, R                 SUB R, R                RA = RA - RB    (2)  [ZNCV]
+MUL    R, R           AX -> MUL R    -> AX          RA = RA * RB         [ZN  ]
+DIV    R, R           AX -> DIV R    -> AX          RA = RA / RB         [ZN  ]
+REM    R, R           AX -> DIV R    -> DX          RA = RA rem RB       [ZN  ]
+IMUL   R, R           AX -> IMUL R   -> AX          RA = RA * RB    (2)  [ZN  ]
+IDIV   R, R           AX -> IDIV R   -> AX          RA = RA / RB    (2)  [ZN  ]
+IREM   R, R           AX -> IDIV R   -> DX          RA = RA rem RB  (2)  [ZN  ]
+CMP    R, R                 CMP R, R                RA - RB         (2)  [ZNCV]
+
+This mapping of instructions is a work in progress.
