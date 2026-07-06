@@ -1,9 +1,5 @@
         .SYMBOL PIN_TTY 10H
 
-        .EXPORT PUTC
-        .EXPORT PUT
-        .EXPORT PUTLN
-
 PUTC:
         ; -> R1 : WORD
         ;
@@ -23,14 +19,14 @@ PUT:
         ;
         LOADI  R3, $PIN_TTY
         LOADI  R4, 0
-.L _LOOP:
+_LOOP:
         CMP    R4, R2
         BRAE       _EXIT
         CPEA   R5, R1 + R4
         OUTR   R3, [R5]
         CPEAI  R4, R4 + 1
         JMP        _LOOP
-.L _RET:
+_RET:
         RET
 
 PUTLN:

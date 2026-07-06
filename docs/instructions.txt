@@ -1,10 +1,12 @@
 This file defines a map between this ISA and x86-style instructions, used for
 reference. It also includes the side effects of the instructions.
+x86 was chosen for familiarity; this ISA does not compile to x86 or anything
+like that (yet).
 -------------------------------------------------------------------------------
 R refers to a register index.
 I refers to an immediate word.
 M refers to an immediate memory address.
-I8 and I12 refer to sized immediates.
+I8 and I12 refer to sized immediates, for bit budgeting.
 
 X, in a mapping, means that this ISA can use an immediate here, but x86 must
 use r16, m16, or r/m16 in place.
@@ -14,6 +16,7 @@ this was x86, we would need the defined fixed register for an input.
 A right-pointing arrow '->' at the end of a mapped instruction means that if
 this was x86, we would derive the result of intended instruction from the
 defined fixed register.
+This ISA does not use implicit registers, but the mapping is explicit.
 
 '(2)' at the end of an effect means its operation follows 2's compliment. If
 it is not present, the operation can be treated as unsigned, or disregarding
@@ -111,5 +114,10 @@ OUT     R, R                OUT R, R                pins[RA] = RB
 IN      R, R                IN  R, R                RB = pins[RB]
 OUTI    R, I                OUT R, I                pins[RA] = RB
 INI     R, I                IN  R, I                RB = pins[RA]
+OUTR    R, R                OUT R, [R]              pins[RA] = *RA
+INR     R, R                IN  R, [R]              *RA = pins[RA]
+OUTM    R, M                OUT R, [M]              pins[RA] = *M
+INM     R, M                IN  R, [M]              *M = pins[RA]
+QUERY   R, R                ~                       RB = pins[RA].infomask
 
 This mapping of instructions is a work in progress.
