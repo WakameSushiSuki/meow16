@@ -5,7 +5,7 @@ R refers to a register index.
 I refers to an immediate word.
 M refers to an effective memory address.
 
-*, in a mapping, means that this ISA can use an immediate here, but x86 must
+X, in a mapping, means that this ISA can use an immediate here, but x86 must
 use r16, m16, or r/m16 in place.
 
 A right-pointing arrow '->' at the start of a mapped instruction means that if
@@ -35,13 +35,13 @@ LOAD   R, R                 MOV R, R                RA = RB
 LOADI  R, I                 MOV R, I                RA = I
 LOADM  R, M                 MOV R, [M]              RA = *M
 STORE  M, R                 MOV [M], R              *M = RA
-STOREI M, I                 MOV [M], I              *M = RA
+STOREI M, I                 MOV [M], I              *M = I
 AND    R, R                 AND R, R                RA = RA & RB         [ZN  ]
 OR     R, R                 OR  R, R                RA = RA | RB         [ZN  ]
 XOR    R, R                 XOR R, R                RA = RA ^ RB         [ZN  ]
 SHL    R, R                 SHL R, R                RA = RA << RB        [ZNC ]
 SHR    R, R                 SHR R, R                RA = RA >> RB        [ZNC ]
-SAR    R, R                 SAR R, R                RA = RA sar RB  (S)  [ZNC ]
+SSR    R, R                 SAR R, R                RA = RA sar RB  (S)  [ZNC ]
 ROL    R, R                 ROL R, R                RA = RA rol RB       [ZNC ]
 ROR    R, R                 ROR R, R                RA = RA ror RB       [ZNC ]
 ADD    R, R                 ADD R, R                RA = RA + RB    (2)  [ZNCV]
@@ -53,5 +53,22 @@ IMUL   R, R           AX -> IMUL R   -> AX          RA = RA * RB    (2)  [ZN  ]
 IDIV   R, R           AX -> IDIV R   -> AX          RA = RA / RB    (2)  [ZN  ]
 IREM   R, R           AX -> IDIV R   -> DX          RA = RA rem RB  (2)  [ZN  ]
 CMP    R, R                 CMP R, R                RA - RB         (2)  [ZNCV]
+ANDI   R, I                 AND R, I                RA = RA & I          [ZN  ]
+ORI    R, I                 OR  R, I                RA = RA | I          [ZN  ]
+XORI   R, I                 XOR R, I                RA = RA ^ I          [ZN  ]
+SHLI   R, I                 SHL R, I                RA = RA << I         [ZNC ]
+SHRI   R, I                 SHR R, I                RA = RA >> I         [ZNC ]
+SSRI   R, I                 SAR R, I                RA = RA sar I   (S)  [ZNC ]
+ROLI   R, I                 ROL R, I                RA = RA rol I        [ZNC ]
+RORI   R, I                 ROR R, I                RA = RA ror I        [ZNC ]
+ADDI   R, I                 ADD R, I                RA = RA + I     (2)  [ZNCV]
+SUBI   R, I                 SUB R, I                RA = RA - I     (2)  [ZNCV]
+MULI   R, I           AX -> MUL X    -> AX          RA = RA * I          [ZN  ]
+DIVI   R, I           AX -> DIV X    -> AX          RA = RA / I          [ZN  ]
+REMI   R, I           AX -> DIV X    -> DX          RA = RA rem I        [ZN  ]
+IMULI  R, I           AX -> IMUL X   -> AX          RA = RA * I     (2)  [ZN  ]
+IDIVI  R, I           AX -> IDIV X   -> AX          RA = RA / I     (2)  [ZN  ]
+IREMI  R, I           AX -> IDIV X   -> DX          RA = RA rem I   (2)  [ZN  ]
+CMPI   R, I                 CMP R, I                RA - I          (2)  [ZNCV]
 
 This mapping of instructions is a work in progress.
