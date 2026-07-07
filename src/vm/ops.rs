@@ -1,10 +1,11 @@
 use num_enum::TryFromPrimitive;
 use num_enum::IntoPrimitive;
+use strum::EnumCount;
 use strum::EnumIter;
 use strum::EnumString;
 
 #[repr(u8)]
-#[derive(Clone, Copy, Debug, TryFromPrimitive, IntoPrimitive, EnumIter, EnumString)]
+#[derive(Clone, Copy, Debug, TryFromPrimitive, IntoPrimitive, EnumCount, EnumIter, EnumString)]
 pub enum Opcode {
     LOAD,
     LOADI,

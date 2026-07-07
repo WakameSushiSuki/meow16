@@ -1,4 +1,4 @@
-use crate::vm::opcodes;
+use meow16::vm::opcodes;
 
 fn main() {
 }
