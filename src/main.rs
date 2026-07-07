@@ -120,8 +120,6 @@ fn main() {
         abort!("{}", msg);
     }));
 
-    panic!("this is a test.");
-
     let mut options = Options::default();
     let mut args = std::env::args().skip(1).peekable();
     let mut nargs = Vec::<String>::with_capacity(16);
