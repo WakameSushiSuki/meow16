@@ -91,6 +91,37 @@ fn write_usage() {
 }
 
 fn main() {
+    std::panic::set_hook(Box::new(|info| {
+        let mut msg = String::with_capacity(256);
+        msg.push_str("[HOST] an error occured");
+
+        let s: &str = if let Some(s) = info.payload().downcast_ref::<&'static str>() {
+            msg.push('\n');
+            s
+        } else if let Some(s) = info.payload().downcast_ref::<String>() {
+            msg.push('\n');
+            s
+        } else {
+            ""
+        };
+
+        for ln in s.lines() {
+            msg.push_str("    ");
+            msg.push_str(ln);
+            msg.push('\n');
+        }
+
+        if let Some(t) = std::thread::current().name() {
+            msg.push_str("thread '");
+            msg.push_str(t);
+            msg.push('\'');
+        }
+
+        abort!("{}", msg);
+    }));
+
+    panic!("this is a test.");
+
     let mut options = Options::default();
     let mut args = std::env::args().skip(1).peekable();
     let mut nargs = Vec::<String>::with_capacity(16);
@@ -146,5 +177,5 @@ fn main() {
         Err(e) => e,
     };
 
-    abort!("{}", error.message());
+    abort!("[HOST] {}", error.message());
 }
