@@ -1,17 +1,15 @@
 use meow16::vm;
 use strum::EnumString;
+use strum::Display;
 
+const BINARY: &str = "./meow16";
 const USAGE: &str = "((<action> [file]) | <action>) [...options]";
 
-#[derive(Clone, Copy, PartialEq, Eq, EnumString)]
+#[derive(Clone, Copy, PartialEq, Eq, EnumString, Display)]
 pub enum Action {
     #[strum(serialize = "execute")]
     Execute,
-    #[strum(serialize = "step")]
-    Step,
-    #[strum(serialize = "debug-execute")]
-    DebugExecute,
-    #[strum(serialize = "debug-step")]
+    #[strum(serialize = "debug")]
     DebugStep,
     #[strum(serialize = "version")]
     WriteVersion,
@@ -21,36 +19,10 @@ pub enum Action {
 
 #[derive(Default)]
 struct Options {
-    dump: usize,
-}
-
-fn action_execute() -> Result<(), vm::Error> {
-    Err(vm::Error::ErrorMessage("action 'execute' is not implemented".to_string()))
-}
-
-fn action_step() -> Result<(), vm::Error> {
-    Err(vm::Error::ErrorMessage("action 'step' is not implemented".to_string()))
-}
-
-fn action_debug_execute() -> Result<(), vm::Error> {
-    Err(vm::Error::ErrorMessage("action 'debug-execute' is not implemented".to_string()))
-}
-
-fn action_debug_step() -> Result<(), vm::Error> {
-    Err(vm::Error::ErrorMessage("action 'debug-step' is not implemented".to_string()))
-}
-
-fn action_write_version() -> Result<(), vm::Error> {
-    Err(vm::Error::ErrorMessage("action 'version' is not implemented".to_string()))
-}
-
-fn action_write_help() -> Result<(), vm::Error> {
-    Err(vm::Error::ErrorMessage("action 'help' is not implemented".to_string()))
-}
-
-fn write_usage(program_name: &str) {
-    println!("Usage: {} {}", program_name, USAGE);
-    println!("Run `{} help` for help", program_name);
+    use_stdin: bool,
+    dump_file: Option<String>,
+    dump_buffer_size: usize,
+    rollback_buffer_size: usize,
 }
 
 macro_rules! abort {
@@ -60,55 +32,106 @@ macro_rules! abort {
     }}
 }
 
-fn opt_val(key: &str, val: Option<String>) -> String {
-    match val {
-        Some(val) => val,
-        None => abort!("expected key for option {}", key),
+macro_rules! assoc {
+    ($opt:expr, use $arg:expr) => {
+        match ($arg) {
+            Some(val) => val,
+            None => abort!("expected associated value for option {}", ($opt)),
+        }
+    };
+
+    ($opt:expr, $args:expr) => {
+        assoc!($opt, use ($args).next())
+    };
+}
+
+macro_rules! int {
+    ($opt:expr, $s:expr) => {{
+        let s = $s;
+        match s.parse::<usize>() {
+            Ok(i) => i,
+            Err(_) => abort!("cannot parse int for option {} from '{}'", ($opt), s),
+        }
+    }}
+}
+
+macro_rules! unimplemented {
+    ($msg:expr) => {
+        abort!("action '{}' is not implemented", ($msg));
     }
 }
 
-fn opt_int(opt: &str, s: String) -> usize {
-    match s.parse::<usize>() {
-        Ok(i) => i,
-        Err(_) => abort!("cannot parse int for option {} from '{}'", opt, s),
-    }
+fn action_execute(args: impl Iterator<Item = String>, options: Options) -> Result<(), vm::Error> {
+    _ = args;
+    _ = options;
+    unimplemented!(Action::Execute);
+}
+
+fn action_debug_step(args: impl Iterator<Item = String>, options: Options) -> Result<(), vm::Error> {
+    _ = args;
+    _ = options;
+    unimplemented!(Action::DebugStep);
+}
+
+fn action_write_version(args: impl Iterator<Item = String>, options: Options) -> Result<(), vm::Error> {
+    _ = args;
+    _ = options;
+    unimplemented!(Action::WriteVersion);
+}
+
+fn action_write_help(args: impl Iterator<Item = String>, options: Options) -> Result<(), vm::Error> {
+    _ = args;
+    _ = options;
+    unimplemented!(Action::WriteHelp);
+}
+
+fn write_usage() {
+    println!("Usage: {} {}", BINARY, USAGE);
+    println!("try running `{} help` for actions and options", BINARY)
 }
 
 fn main() {
     let mut options = Options::default();
-    let mut args = std::env::args().peekable();
-    let program_name = args.next().unwrap();
+    let mut args = std::env::args().skip(1).peekable();
 
     if args.peek().is_none() {
-        return write_usage(&program_name);
+        return write_usage();
     }
 
     let action: Action = {
         let action_string = args.next().unwrap();
         match action_string.parse() {
             Ok(action) => action,
-            Err(_) => abort!("unknown action '{}'", action_string),
+            Err(_) => abort!("unknown action '{}'{}", action_string, if action_string.starts_with("-") {
+                "; if this argument is a flag, it should be placed after the action name"
+            } else { "" }),
         }
     };
 
     while let Some(arg) = args.next() {
         match arg.as_ref() {
             opt @ ("-d" | "--dump") => {
-                options.dump = opt_int(opt, opt_val(opt, args.next()));
+                options.dump_file = Some(assoc!(opt, args));
             },
-            "-" => todo!(), // sets file to stdin (once i handle getting the file)
+            opt @ ("-db" | "--dump-buffer") => {
+                options.dump_buffer_size = int!(opt, assoc!(opt, args));
+            },
+            opt @ ("-rb" | "--rollback-buffer") => {
+                options.rollback_buffer_size = int!(opt, assoc!(opt, args));
+            },
+            "-" => {
+                options.use_stdin = true;
+            },
             s if s.starts_with("-") => abort!("unknown option {}", s),
             _ => (),
         };
     }
 
     let result = match action {
-        Action::Execute => action_execute(),
-        Action::Step => action_step(),
-        Action::DebugExecute => action_debug_execute(),
-        Action::DebugStep => action_debug_step(),
-        Action::WriteVersion => action_write_version(),
-        Action::WriteHelp => action_write_help(),
+        Action::Execute => action_execute(args, options),
+        Action::DebugStep => action_debug_step(args, options),
+        Action::WriteVersion => action_write_version(args, options),
+        Action::WriteHelp => action_write_help(args, options),
     };
 
     let error = match result {
