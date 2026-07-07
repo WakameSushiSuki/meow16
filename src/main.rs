@@ -27,7 +27,7 @@ struct Options {
 
 macro_rules! abort {
     ($fmt:literal $(, $($arg:tt)* )?) => {{
-        eprintln!($fmt $( , $($arg)* )?);
+        eprint!($fmt $( , $($arg)* )?);
         std::process::exit(1);
     }}
 }
@@ -36,7 +36,7 @@ macro_rules! assoc {
     ($opt:expr, use $arg:expr) => {
         match ($arg) {
             Some(val) => val,
-            None => abort!("expected associated value for option {}", ($opt)),
+            None => abort!("expected associated value for option {}\n", ($opt)),
         }
     };
 
@@ -50,39 +50,33 @@ macro_rules! int {
         let s = $s;
         match s.parse::<usize>() {
             Ok(i) => i,
-            Err(_) => abort!("cannot parse int for option {} from '{}'", ($opt), s),
+            Err(_) => abort!("cannot parse int for option {} from '{}'\n", ($opt), s),
         }
     }}
-}
-
-macro_rules! unimplemented {
-    ($msg:expr) => {
-        abort!("action '{}' is not implemented", ($msg));
-    }
 }
 
 fn action_execute(args: Vec<String>, options: Options) -> Result<(), vm::Error> {
     _ = args;
     _ = options;
-    unimplemented!(Action::Execute);
+    todo!("action '{}'", Action::Execute);
 }
 
 fn action_debug_step(args: Vec<String>, options: Options) -> Result<(), vm::Error> {
     _ = args;
     _ = options;
-    unimplemented!(Action::DebugStep);
+    todo!("action '{}'", Action::DebugStep);
 }
 
 fn action_write_version(args: Vec<String>, options: Options) -> Result<(), vm::Error> {
     _ = args;
     _ = options;
-    unimplemented!(Action::WriteVersion);
+    todo!("action '{}'", Action::WriteVersion);
 }
 
 fn action_write_help(args: Vec<String>, options: Options) -> Result<(), vm::Error> {
     _ = args;
     _ = options;
-    unimplemented!(Action::WriteHelp);
+    todo!("action '{}'", Action::WriteHelp);
 }
 
 fn write_usage() {
@@ -93,7 +87,7 @@ fn write_usage() {
 fn main() {
     std::panic::set_hook(Box::new(|info| {
         let mut msg = String::with_capacity(256);
-        msg.push_str("[HOST] an error occured");
+        msg.push_str("[[HOST]] an error occured");
 
         let s: &str = if let Some(s) = info.payload().downcast_ref::<&'static str>() {
             msg.push('\n');
@@ -112,9 +106,14 @@ fn main() {
         }
 
         if let Some(t) = std::thread::current().name() {
-            msg.push_str("thread '");
-            msg.push_str(t);
-            msg.push('\'');
+            if t != "main" {
+                msg.push_str("non-main thread '");
+                msg.push_str(t);
+                msg.push('\'');
+                msg.push('\n');
+            }
+        } else {
+            msg.push_str("non-main thread\n");
         }
 
         abort!("{}", msg);
@@ -132,7 +131,7 @@ fn main() {
         let action_string = args.next().unwrap();
         match action_string.parse() {
             Ok(action) => action,
-            Err(_) => abort!("unknown action '{}'{}", action_string, if action_string.starts_with("-") {
+            Err(_) => abort!("unknown action '{}'{}\n", action_string, if action_string.starts_with("-") {
                 "; if this argument is a flag, it should be placed after the action name"
             } else { "" }),
         }
@@ -158,7 +157,7 @@ fn main() {
             opt if opt == "-" => {
                 options.use_stdin = true;
             },
-            s if s.starts_with("-") => abort!("unknown option {}", s),
+            s if s.starts_with("-") => abort!("unknown option {}\n", s),
             s => nargs.push(s),
         };
     }
@@ -175,5 +174,5 @@ fn main() {
         Err(e) => e,
     };
 
-    abort!("[HOST] {}", error.message());
+    abort!("[[VM]] {}\n", error.message());
 }
