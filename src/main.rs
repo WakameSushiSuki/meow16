@@ -1,15 +1,21 @@
 use meow16::vm;
 use strum::EnumString;
 
-const USAGE: &str = "<action> [file] [...options]";
+const USAGE: &str = "((<action> [file]) | <action>) [...options]";
 
 #[derive(Clone, Copy, PartialEq, Eq, EnumString)]
 pub enum Action {
+    #[strum(serialize = "execute")]
     Execute,
+    #[strum(serialize = "step")]
     Step,
+    #[strum(serialize = "debug-execute")]
     DebugExecute,
+    #[strum(serialize = "debug-step")]
     DebugStep,
+    #[strum(serialize = "version")]
     WriteVersion,
+    #[strum(serialize = "help")]
     WriteHelp,
 }
 
@@ -54,10 +60,24 @@ macro_rules! abort {
     }}
 }
 
+fn opt_val(key: &str, val: Option<String>) -> String {
+    match val {
+        Some(val) => val,
+        None => abort!("expected key for option {}", key),
+    }
+}
+
+fn opt_int(opt: &str, s: String) -> usize {
+    match s.parse::<usize>() {
+        Ok(i) => i,
+        Err(_) => abort!("cannot parse int for option {} from '{}'", opt, s),
+    }
+}
+
 fn main() {
+    let mut options = Options::default();
     let mut args = std::env::args().peekable();
     let program_name = args.next().unwrap();
-    let options = Options::default();
 
     if args.peek().is_none() {
         return write_usage(&program_name);
@@ -67,9 +87,20 @@ fn main() {
         let action_string = args.next().unwrap();
         match action_string.parse() {
             Ok(action) => action,
-            Err(_) => abort!("Unknown action '{}'", action_string),
+            Err(_) => abort!("unknown action '{}'", action_string),
         }
     };
+
+    while let Some(arg) = args.next() {
+        match arg.as_ref() {
+            opt @ ("-d" | "--dump") => {
+                options.dump = opt_int(opt, opt_val(opt, args.next()));
+            },
+            "-" => todo!(), // sets file to stdin (once i handle getting the file)
+            s if s.starts_with("-") => abort!("unknown option {}", s),
+            _ => (),
+        };
+    }
 
     let result = match action {
         Action::Execute => action_execute(),

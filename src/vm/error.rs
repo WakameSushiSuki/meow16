@@ -1,5 +1,4 @@
 use crate::vm;
-use std::borrow::Cow;
 use strum::EnumCount;
 
 #[derive(PartialEq, Eq, Debug)]
@@ -9,7 +8,6 @@ pub enum Error {
     OutOfRangeOpcode(u8),
     OutOfRangeMemory(u16),
     PinInactive(u16),
-    UndersizedInstr(usize),
 } impl Error {
     pub fn error_code(&self) -> usize {
         match self {
@@ -18,7 +16,6 @@ pub enum Error {
             Self::OutOfRangeOpcode(_) => 3,
             Self::OutOfRangeMemory(_) => 4,
             Self::PinInactive(_) => 5,
-            Self::UndersizedInstr(_) => 6,
         }
     }
 
