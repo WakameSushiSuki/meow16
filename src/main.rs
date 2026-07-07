@@ -61,25 +61,25 @@ macro_rules! unimplemented {
     }
 }
 
-fn action_execute(args: impl Iterator<Item = String>, options: Options) -> Result<(), vm::Error> {
+fn action_execute(args: Vec<String>, options: Options) -> Result<(), vm::Error> {
     _ = args;
     _ = options;
     unimplemented!(Action::Execute);
 }
 
-fn action_debug_step(args: impl Iterator<Item = String>, options: Options) -> Result<(), vm::Error> {
+fn action_debug_step(args: Vec<String>, options: Options) -> Result<(), vm::Error> {
     _ = args;
     _ = options;
     unimplemented!(Action::DebugStep);
 }
 
-fn action_write_version(args: impl Iterator<Item = String>, options: Options) -> Result<(), vm::Error> {
+fn action_write_version(args: Vec<String>, options: Options) -> Result<(), vm::Error> {
     _ = args;
     _ = options;
     unimplemented!(Action::WriteVersion);
 }
 
-fn action_write_help(args: impl Iterator<Item = String>, options: Options) -> Result<(), vm::Error> {
+fn action_write_help(args: Vec<String>, options: Options) -> Result<(), vm::Error> {
     _ = args;
     _ = options;
     unimplemented!(Action::WriteHelp);
@@ -93,6 +93,7 @@ fn write_usage() {
 fn main() {
     let mut options = Options::default();
     let mut args = std::env::args().skip(1).peekable();
+    let mut nargs = Vec::<String>::with_capacity(16);
 
     if args.peek().is_none() {
         return write_usage();
@@ -109,29 +110,35 @@ fn main() {
     };
 
     while let Some(arg) = args.next() {
-        match arg.as_ref() {
-            opt @ ("-d" | "--dump") => {
+        match arg {
+            opt if opt == "-d"
+                || opt == "--dump"
+            => {
                 options.dump_file = Some(assoc!(opt, args));
             },
-            opt @ ("-db" | "--dump-buffer") => {
+            opt if opt == "-db"
+                || opt == "--dump-buffer"
+            => {
                 options.dump_buffer_size = int!(opt, assoc!(opt, args));
             },
-            opt @ ("-rb" | "--rollback-buffer") => {
+            opt if opt == "-rb"
+                || opt == "--rollback-buffer"
+            => {
                 options.rollback_buffer_size = int!(opt, assoc!(opt, args));
             },
-            "-" => {
+            opt if opt == "-" => {
                 options.use_stdin = true;
             },
             s if s.starts_with("-") => abort!("unknown option {}", s),
-            _ => (),
+            s => nargs.push(s),
         };
     }
 
     let result = match action {
-        Action::Execute => action_execute(args, options),
-        Action::DebugStep => action_debug_step(args, options),
-        Action::WriteVersion => action_write_version(args, options),
-        Action::WriteHelp => action_write_help(args, options),
+        Action::Execute => action_execute(nargs, options),
+        Action::DebugStep => action_debug_step(nargs, options),
+        Action::WriteVersion => action_write_version(nargs, options),
+        Action::WriteHelp => action_write_help(nargs, options),
     };
 
     let error = match result {
