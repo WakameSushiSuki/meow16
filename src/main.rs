@@ -20,6 +20,7 @@ pub enum Action {
 #[derive(Default)]
 struct Options {
     use_stdin: bool,
+    write_end: bool,
     dump_file: Option<String>,
     dump_buffer_size: usize,
     rollback_buffer_size: usize,
@@ -55,27 +56,19 @@ macro_rules! int {
     }}
 }
 
-fn action_execute(args: Vec<String>, options: Options) -> Result<(), vm::Error> {
-    _ = args;
-    _ = options;
+fn action_execute(_args: Vec<String>, _options: Options) -> Result<(), vm::Error> {
     todo!("action '{}'", Action::Execute);
 }
 
-fn action_debug_step(args: Vec<String>, options: Options) -> Result<(), vm::Error> {
-    _ = args;
-    _ = options;
+fn action_debug_step(_args: Vec<String>, _options: Options) -> Result<(), vm::Error> {
     todo!("action '{}'", Action::DebugStep);
 }
 
-fn action_write_version(args: Vec<String>, options: Options) -> Result<(), vm::Error> {
-    _ = args;
-    _ = options;
+fn action_write_version(_args: Vec<String>, _options: Options) -> Result<(), vm::Error> {
     todo!("action '{}'", Action::WriteVersion);
 }
 
-fn action_write_help(args: Vec<String>, options: Options) -> Result<(), vm::Error> {
-    _ = args;
-    _ = options;
+fn action_write_help(_args: Vec<String>, _options: Options) -> Result<(), vm::Error> {
     todo!("action '{}'", Action::WriteHelp);
 }
 
@@ -139,6 +132,14 @@ fn main() {
 
     while let Some(arg) = args.next() {
         match arg {
+            opt if opt == "-" => {
+                options.use_stdin = true;
+            },
+            opt if opt == "-e"
+                || opt == "--write-end"
+            => {
+                options.write_end = true;
+            }
             opt if opt == "-d"
                 || opt == "--dump"
             => {
@@ -154,13 +155,12 @@ fn main() {
             => {
                 options.rollback_buffer_size = int!(opt, assoc!(opt, args));
             },
-            opt if opt == "-" => {
-                options.use_stdin = true;
-            },
             s if s.starts_with("-") => abort!("unknown option {}\n", s),
             s => nargs.push(s),
         };
     }
+
+    let wend = options.write_end;
 
     let result = match action {
         Action::Execute => action_execute(nargs, options),
@@ -170,7 +170,10 @@ fn main() {
     };
 
     let error = match result {
-        Ok(_) => return,
+        Ok(_) => return if wend {
+            println!("[[VM]] end of program");
+            ()
+        },
         Err(e) => e,
     };
 
